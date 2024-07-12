@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Streams</title>
+    <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        }
+        video {
+            width: 100%;
+            height: auto;
+        }
+        #stream-selector {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="stream-selector">
+        <label for="stream">Select Stream: </label>
+        <select id="stream" onchange="changeStream()">
+            <option value="/192.168.150.101/stream.m3u8">Stream 192.168.150.101</option>
+            <option value="/192.168.150.102/stream.m3u8">Stream 192.168.150.102</option>
+            <option value="/192.168.160.101/stream.m3u8">Stream 192.168.160.101</option>
+            <option value="/192.168.160.102/stream.m3u8">Stream 192.168.160.102</option>
+        </select>
+    </div>
+    <video id="live-stream" class="video-js vjs-default-skin" controls autoplay muted preload="auto">
+        <source src="/192.168.150.101/stream.m3u8" type="application/x-mpegURL">
+    </video>
+    <script>
+        var player = videojs('live-stream');
+
+        player.ready(function() {
+            player.muted(true);
+            player.play().then(() => {
+                player.muted(false);
+            }).catch(error => {
+                console.error('Autoplay failed:', error);
+            });
+        });
+
+        player.on('error', function() {
+            console.error('Video encountered an error. Attempting to reload...');
+            player.src({ type: 'application/x-mpegURL', src: document.getElementById('stream').value });
+            player.load();
+            player.play();
+        });
+
+        player.on('ended', function() {
+            console.log('Video ended. Restarting...');
+            player.currentTime(0);
+            player.play();
+        });
+
+        setInterval(function() {
+            if (player.paused()) {
+                console.log('Video is paused. Reloading...');
+                player.src({ type: 'application/x-mpegURL', src: document.getElementById('stream').value });
+                player.load();
+                player.play();
+            }
+        }, 180000); // Check every 3 minutes
+
+        function changeStream() {
+            var streamUrl = document.getElementById('stream').value;
+            player.src({ type: 'application/x-mpegURL', src: streamUrl });
+            player.load();
+            player.play();
+        }
+    </script>
+</body>
+</html>
