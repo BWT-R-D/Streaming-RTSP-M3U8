@@ -1,4 +1,4 @@
-# Create floder in public floder
+# Create video floder in public floder
 public 
 |-video
 
