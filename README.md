@@ -5,9 +5,11 @@ public
 # First installation cmd
 - npm init
 - npm instal
-- 
-# Download FFmeg (https://www.gyan.dev/ffmpeg/builds/) to tis path or change location in index.js file 
-- C:\ffmpeg-2024-07-07-git-0619138639-essentials_build\bin
+  
+# Download FFmeg 
+- https://www.gyan.dev/ffmpeg/builds/
+- Change your ffmeg path in your index.js
+
 # Testing Url
 - Localhost:8080
 
