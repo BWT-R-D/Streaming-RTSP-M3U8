@@ -12,9 +12,10 @@ public
 - Localhost:8080
 
 # Connect with Cloudfare tunnel
-1. Download cloudfare tunnel
+Download cloudfare tunnel
 - https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-2.Installtion  cmd 
+
+# Installtion  cmd 
 - winget install --id Cloudflare.cloudflared
 - cloudflared --version
 - cloudflared tunnel --url http://localhost:8080
