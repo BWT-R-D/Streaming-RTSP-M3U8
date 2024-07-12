@@ -4,7 +4,7 @@ public
 
 # First installation cmd
 - npm init
-- npm instal
+- npm install
   
 # Download FFmeg 
 - https://www.gyan.dev/ffmpeg/builds/
