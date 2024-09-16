@@ -10,8 +10,8 @@ set /p rtsp_link=
 echo RTSP URL: "%rtsp_link%"
 
 :: Step 3: Start Node.js process to handle the RTSP stream with FFmpeg
-echo Step 3: Starting Node.js server at C:\webm3u8\index.js with RTSP URL: "%rtsp_link%"
-start node C:\webm3u8\index.js "%rtsp_link%"
+echo Step 3: Starting Node.js server at C:\Streaming-RTSP-M3U8\index.js with RTSP URL: "%rtsp_link%"
+start node C:\Streaming-RTSP-M3U8\index.js "%rtsp_link%"
 
 :: Step 4: Run Cloudflared login, only if needed
 if not exist "%USERPROFILE%\.cloudflared\cert.pem" (
