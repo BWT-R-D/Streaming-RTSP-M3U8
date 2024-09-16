@@ -6,19 +6,31 @@ const fs = require('fs');
 const app = express();
 const PORT = 8080;
 
-// Define your RTSP stream URLs
-const rtspUrls = {
-    '192.168.150.101': 'rtsp://admin:itc123456@192.168.150.101:554/cam/realmonitor?channel=1&subtype=0',
-  //  '192.168.150.102': 'rtsp://admin:itc123456@192.168.150.102:554/cam/realmonitor?channel=1&subtype=0',
- //   '192.168.160.101': 'rtsp://admin:itc123456@192.168.160.101:554/cam/realmonitor?channel=1&subtype=0',
- //   '192.168.160.102': 'rtsp://admin:itc123456@192.168.160.102:554/cam/realmonitor?channel=1&subtype=0'
-};
+// Get the RTSP URL from the command-line argument
+const rtspUrl = process.argv[2]; // The second argument will be the RTSP URL passed from the batch file
+
+// Log the RTSP URL for debugging purposes
+console.log(`RTSP URL provided: ${rtspUrl}`);
+
+// Validate that the RTSP URL is provided
+if (!rtspUrl) {
+    console.error('Error: RTSP URL not provided. Please pass the RTSP URL as an argument.');
+    process.exit(1);
+}
+
+// Extract IP address from RTSP URL (used for folder naming)
+const ipMatch = rtspUrl.match(/(\d+\.\d+\.\d+\.\d+)/);
+if (!ipMatch) {
+    console.error('Error: Invalid RTSP URL format. Could not extract IP address.');
+    process.exit(1);
+}
+const ip = ipMatch[0];
 
 // Full path to ffmpeg executable
-const ffmpegPath = 'C:\\ffmpeg-2024-07-07-git-0619138639-essentials_build\\bin\\ffmpeg.exe';
+const ffmpegPath = 'C:\\ffmpeg-6.1.1-essentials_build\\bin\\ffmpeg.exe';
 
 // Directory to store the segments
-const segmentsDir = path.join(__dirname, 'public');
+const segmentsDir = path.join(__dirname, 'public', ip);
 
 // Function to start FFmpeg process for a specific RTSP URL and segment directory
 function startFfmpeg(rtspUrl, streamFile, segmentDir) {
@@ -58,32 +70,26 @@ function startFfmpeg(rtspUrl, streamFile, segmentDir) {
     return ffmpegProcess;
 }
 
-// Start FFmpeg processes for each RTSP URL
-Object.keys(rtspUrls).forEach(ip => {
-    const segmentDir = path.join(segmentsDir, ip);
-    const streamFile = path.join(segmentDir, 'stream.m3u8');
+// Ensure the segment directory exists
+if (!fs.existsSync(segmentsDir)) {
+    fs.mkdirSync(segmentsDir, { recursive: true });
+}
 
-    // Ensure the segment directory exists
-    if (!fs.existsSync(segmentDir)) {
-        fs.mkdirSync(segmentDir, { recursive: true });
-    }
+// Start the FFmpeg process
+const streamFile = path.join(segmentsDir, 'stream.m3u8');
+startFfmpeg(rtspUrl, streamFile, segmentsDir);
 
-    // Start the FFmpeg process
-    startFfmpeg(rtspUrls[ip], streamFile, segmentDir);
+// Set up the route to serve the stream file
+app.get(`/${ip}/stream.m3u8`, (req, res) => {
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
 
-    // Set up the route to serve the stream file
-    app.get(`/${ip}/stream.m3u8`, (req, res) => {
-        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-
-        fs.access(streamFile, fs.constants.F_OK, (err) => {
-            if (err) {
-                console.error('Stream file not found:', err);
-                // Serve an older version or an error message
-                res.status(404).send('Stream not available');
-            } else {
-                res.sendFile(streamFile);
-            }
-        });
+    fs.access(streamFile, fs.constants.F_OK, (err) => {
+        if (err) {
+            console.error('Stream file not found:', err);
+            res.status(404).send('Stream not available');
+        } else {
+            res.sendFile(streamFile);
+        }
     });
 });
 
@@ -98,7 +104,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files
-app.use(express.static(segmentsDir));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
